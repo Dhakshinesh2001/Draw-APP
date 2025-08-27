@@ -28,13 +28,14 @@ function drawRectangle(ctx: CanvasRenderingContext2D, diagram: Draw) {
   ctx.closePath();
 }
 
-function clearAndRenderFullCanvas(ctx: CanvasRenderingContext2D ,DrawObjs: Draw[]){
+function clearAndRenderFullCanvas(ctx: CanvasRenderingContext2D | null  ,DrawObjs: Draw[]){
+    if(!ctx)return;
     DrawObjs.forEach((obj:Draw) => {
 
         // ctx.clear();
 
         if(obj.shape === "rectangle"){
-            drawRectangle(ctx, obj);
+            drawRectangle(ctx!, obj);
         }
     });
 }
@@ -82,7 +83,7 @@ const Canvas = () => {
         
 
         const handleMouseDown = (event: MouseEvent) => {
-            //console.log('mouse down');
+            console.log('mouse down');
             isDraging.current = true;
             DrawStartPoint.current = {x: event.offsetX , y: event.offsetY };
             //console.log("DrawStartPoint:",DrawStartPoint.current.x, DrawStartPoint.current.y);
@@ -91,7 +92,7 @@ const Canvas = () => {
         const handleMouseUp = (event: MouseEvent) => { 
             if(!canvasCTX) return;
 
-             //console.log('mouse up');
+             console.log('mouse up');
             isDraging.current = false;
             DrawEndPoint.current = {x: event.offsetX , y: event.offsetY };
             //console.log("Draw-end-point:",DrawEndPoint.current.x,DrawEndPoint.current.y);
@@ -109,6 +110,7 @@ const Canvas = () => {
 
 
             DrawObjArray.current.push(newDraw);
+            currentShapeId.current++;
             canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
             //@ts-ignore
             clearAndRenderFullCanvas(canvasCTX.current, DrawObjArray.current);
@@ -117,11 +119,26 @@ const Canvas = () => {
         }
         };
         const handleMouseMove = (event: MouseEvent) => { 
-
+            if(!isDraging.current) return;
             // if(isDraging.current){
-             //console.log('mouse move');
+             console.log('mouse move');
              //console.log("currentpointx:",event.offsetX,"currentpointy:",event.offsetY);
-            DrawDragPoint.current = {x: event.offsetX , y: event.offsetX };
+            DrawDragPoint.current = {x: event.offsetX , y: event.offsetY };
+            if(selectedShape === "rectangle"){
+            const newDraw: Draw = {
+                id: currentShapeId.current,
+                shape : selectedShape,
+                startX: DrawStartPoint.current.x,
+                startY: DrawStartPoint.current.y,
+                endX: DrawDragPoint.current.x,
+                endY : DrawDragPoint.current.y,
+
+            };
+            // console.log(newDraw);
+            canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
+            clearAndRenderFullCanvas(canvasCTX.current, [...DrawObjArray.current,newDraw]);}
+            
+            
         };
         const handleKeyDown = (event: KeyboardEvent) => { };
         const handleScroll = (event: MouseEvent) => { };
