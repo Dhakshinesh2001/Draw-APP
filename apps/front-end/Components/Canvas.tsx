@@ -27,6 +27,19 @@ function drawRectangle(ctx: CanvasRenderingContext2D, diagram: Draw) {
   ctx.fill();
   ctx.closePath();
 }
+function drawCircle(ctx: CanvasRenderingContext2D, diagram: Draw) {
+  const centerX = (diagram.startX! + diagram.endX!) / 2;
+  const centerY = (diagram.startY! + diagram.endY!) / 2;
+
+  const radiusX = Math.abs(diagram.endX! - diagram.startX!) / 2;
+  const radiusY = Math.abs(diagram.endY! - diagram.startY!) / 2;
+
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+  ctx.stroke();
+  ctx.fill();
+  ctx.closePath();
+}
 
 function clearAndRenderFullCanvas(ctx: CanvasRenderingContext2D | null  ,DrawObjs: Draw[]){
     if(!ctx)return;
@@ -35,7 +48,10 @@ function clearAndRenderFullCanvas(ctx: CanvasRenderingContext2D | null  ,DrawObj
         // ctx.clear();
 
         if(obj.shape === "rectangle"){
-            drawRectangle(ctx!, obj);
+            drawRectangle(ctx, obj);
+        }
+        if(obj.shape === "circle") {drawCircle(ctx,obj);
+            console.log("circle");
         }
     });
 }
@@ -67,7 +83,7 @@ const Canvas = () => {
         | "text"
         | "freeHand"
         | null
-    >("rectangle");
+    >("circle");
 
     useEffect(()=>{
         setisClient(true);
@@ -134,9 +150,24 @@ const Canvas = () => {
                 endY : DrawDragPoint.current.y,
 
             };
+            
             // console.log(newDraw);
             canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
             clearAndRenderFullCanvas(canvasCTX.current, [...DrawObjArray.current,newDraw]);}
+
+            if(selectedShape === "circle"){
+                const newDraw: Draw = {
+                id: currentShapeId.current,
+                shape : selectedShape,
+                startX: DrawStartPoint.current.x,
+                startY: DrawStartPoint.current.y,
+                endX: DrawDragPoint.current.x,
+                endY : DrawDragPoint.current.y,
+
+            };
+            canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
+            clearAndRenderFullCanvas(canvasCTX.current, [...DrawObjArray.current,newDraw]);}
+            
             
             
         };
