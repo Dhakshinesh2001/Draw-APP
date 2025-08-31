@@ -2,6 +2,70 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Draw } from "../types";
+function drawDiamond(ctx: CanvasRenderingContext2D, diagram: Draw) {
+  const { startX, startY, endX, endY, strokeStyle, fillStyle, lineWidth, isFill } = diagram;
+
+  const cx = (startX! + endX!) / 2;
+  const cy = (startY! + endY!) / 2;
+
+  const dx = Math.abs(endX! - startX!) / 2;
+  const dy = Math.abs(endY! - startY!) / 2;
+
+  // Clamp corner radius
+  const radius = Math.min(dx, dy) * 0.2;
+
+  // Calculate the 4 corners of the diamond (rotated rectangle)
+  const top = { x: cx, y: cy - dy };
+  const right = { x: cx + dx, y: cy };
+  const bottom = { x: cx, y: cy + dy };
+  const left = { x: cx - dx, y: cy };
+
+  // Unit vectors for directions between points (needed for corner rounding)
+  function unitVec(p1: {x:number,y:number}, p2: {x:number,y:number}) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy);
+    return { x: dx / len, y: dy / len };
+  }
+
+  const topToRight = unitVec(top, right);
+  const rightToBottom = unitVec(right, bottom);
+  const bottomToLeft = unitVec(bottom, left);
+  const leftToTop = unitVec(left, top);
+
+  ctx.beginPath();
+  ctx.strokeStyle = strokeStyle;
+  ctx.fillStyle = fillStyle;
+  ctx.lineWidth = lineWidth;
+
+  // Start at top, move slightly inward
+  ctx.moveTo(top.x + topToRight.x * radius, top.y + topToRight.y * radius);
+
+  // Top-right corner
+  ctx.lineTo(right.x - topToRight.x * radius, right.y - topToRight.y * radius);
+  ctx.quadraticCurveTo(right.x, right.y, right.x + rightToBottom.x * radius, right.y + rightToBottom.y * radius);
+
+  // Bottom-right corner
+  ctx.lineTo(bottom.x - rightToBottom.x * radius, bottom.y - rightToBottom.y * radius);
+  ctx.quadraticCurveTo(bottom.x, bottom.y, bottom.x + bottomToLeft.x * radius, bottom.y + bottomToLeft.y * radius);
+
+  // Bottom-left corner
+  ctx.lineTo(left.x - bottomToLeft.x * radius, left.y - bottomToLeft.y * radius);
+  ctx.quadraticCurveTo(left.x, left.y, left.x + leftToTop.x * radius, left.y + leftToTop.y * radius);
+
+  // Top-left corner
+  ctx.lineTo(top.x - leftToTop.x * radius, top.y - leftToTop.y * radius);
+  ctx.quadraticCurveTo(top.x, top.y, top.x + topToRight.x * radius, top.y + topToRight.y * radius);
+
+  ctx.closePath();
+
+  if (isFill) ctx.fill();
+  ctx.stroke();
+}
+
+
+
+
 
 function drawRectangle(ctx: CanvasRenderingContext2D, diagram: Draw) {
   const cornerRadius = Math.min(
@@ -63,6 +127,7 @@ function clearAndRenderFullCanvas(ctx: CanvasRenderingContext2D | null  ,DrawObj
         if(obj.shape === "circle") {drawCircle(ctx,obj);
             console.log("circle");
         }
+        if(obj.shape === "diamond")drawDiamond(ctx,obj);
     });
 }
 
@@ -97,7 +162,7 @@ const Canvas = () => {
         | "text"
         | "freeHand"
         | null
-    >("circle");
+    >("diamond");
 
     useEffect(()=>{
         setisClient(true);
@@ -171,6 +236,27 @@ const Canvas = () => {
             currentShapeId.current++;
             canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
             clearAndRenderFullCanvas(canvasCTX.current, [...DrawObjArray.current,newDraw]);}
+
+
+
+             if(selectedShape === "diamond"){
+                const newDraw: Draw = {
+                id: currentShapeId.current,
+                shape : selectedShape,
+                startX: DrawStartPoint.current.x,
+                startY: DrawStartPoint.current.y,
+                endX: DrawDragPoint.current.x,
+                endY : DrawDragPoint.current.y,
+                fillStyle: currentFillStyle.current,
+                strokeStyle: currentStrokeStyle.current,
+                lineWidth: currentLineWidth.current,
+                isFill: currentIsFill.current
+
+            };
+             DrawObjArray.current.push(newDraw);
+            currentShapeId.current++;
+            canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
+            clearAndRenderFullCanvas(canvasCTX.current, DrawObjArray.current);}
         };
         const handleMouseMove = (event: MouseEvent) => { 
             if(!isDraging.current) return;
@@ -214,6 +300,25 @@ const Canvas = () => {
             canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
             clearAndRenderFullCanvas(canvasCTX.current, [...DrawObjArray.current,newDraw]);}
             
+            if(selectedShape === "diamond"){
+                console.log('272 line')
+            const newDraw: Draw = {
+                id: currentShapeId.current,
+                shape : selectedShape,
+                startX: DrawStartPoint.current.x,
+                startY: DrawStartPoint.current.y,
+                endX: DrawDragPoint.current.x,
+                endY : DrawDragPoint.current.y,
+                fillStyle: currentFillStyle.current,
+                strokeStyle: currentStrokeStyle.current,
+                lineWidth: currentLineWidth.current,
+                isFill: currentIsFill.current
+
+            };
+            
+            // console.log(newDraw);
+            canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
+            clearAndRenderFullCanvas(canvasCTX.current, [...DrawObjArray.current,newDraw]);}
             
             
         };
