@@ -15,6 +15,9 @@ function drawRectangle(ctx: CanvasRenderingContext2D, diagram: Draw) {
       Math.abs(diagram.endY! - diagram.startY!)
     ) / 2
   );
+  ctx.strokeStyle= diagram.strokeStyle;
+  ctx.fillStyle = diagram.fillStyle;
+  ctx.lineWidth = diagram.lineWidth;
   ctx.beginPath();
   ctx.roundRect(
     diagram.startX!,
@@ -24,6 +27,7 @@ function drawRectangle(ctx: CanvasRenderingContext2D, diagram: Draw) {
     cornerRadius
   );
   ctx.stroke();
+  if(diagram.isFill)
   ctx.fill();
   ctx.closePath();
 }
@@ -34,9 +38,15 @@ function drawCircle(ctx: CanvasRenderingContext2D, diagram: Draw) {
   const radiusX = Math.abs(diagram.endX! - diagram.startX!) / 2;
   const radiusY = Math.abs(diagram.endY! - diagram.startY!) / 2;
 
+
+  ctx.strokeStyle= diagram.strokeStyle;
+  ctx.fillStyle = diagram.fillStyle;
+  ctx.lineWidth = diagram.lineWidth;
+
   ctx.beginPath();
   ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
   ctx.stroke();
+  if(diagram.isFill)
   ctx.fill();
   ctx.closePath();
 }
@@ -74,6 +84,10 @@ const Canvas = () => {
     const DrawObjArray = useRef<Draw[]>([]);
     const isDraging = useRef<boolean>(false);
     const canvasCTX = useRef<CanvasRenderingContext2D>(null);
+    const currentLineWidth= useRef<number>(5);
+    const currentStrokeStyle = useRef<string>("000000");
+    const currentFillStyle = useRef<string>("FFFFFF")
+    const currentIsFill = useRef<boolean>(false);
     const [selectedShape, setSelectedShape] = useState<
         | "rectangle"
         | "diamond"
@@ -94,7 +108,7 @@ const Canvas = () => {
     },[]);
 
     useEffect(() => {
-        if(canvasRef.current)
+        if(!canvasRef.current)return;
         canvasCTX.current = canvasRef.current.getContext("2d");
         
 
@@ -121,6 +135,11 @@ const Canvas = () => {
                 startY: DrawStartPoint.current.y,
                 endX: DrawEndPoint.current.x,
                 endY : DrawEndPoint.current.y,
+                fillStyle: currentFillStyle.current,
+                strokeStyle: currentStrokeStyle.current,
+                lineWidth: currentLineWidth.current,
+                isFill: currentIsFill.current
+
 
             };
 
@@ -133,6 +152,25 @@ const Canvas = () => {
 
         
         }
+
+             if(selectedShape === "circle"){
+                const newDraw: Draw = {
+                id: currentShapeId.current,
+                shape : selectedShape,
+                startX: DrawStartPoint.current.x,
+                startY: DrawStartPoint.current.y,
+                endX: DrawDragPoint.current.x,
+                endY : DrawDragPoint.current.y,
+                fillStyle: currentFillStyle.current,
+                strokeStyle: currentStrokeStyle.current,
+                lineWidth: currentLineWidth.current,
+                isFill: currentIsFill.current
+
+            };
+             DrawObjArray.current.push(newDraw);
+            currentShapeId.current++;
+            canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
+            clearAndRenderFullCanvas(canvasCTX.current, [...DrawObjArray.current,newDraw]);}
         };
         const handleMouseMove = (event: MouseEvent) => { 
             if(!isDraging.current) return;
@@ -148,6 +186,10 @@ const Canvas = () => {
                 startY: DrawStartPoint.current.y,
                 endX: DrawDragPoint.current.x,
                 endY : DrawDragPoint.current.y,
+                fillStyle: currentFillStyle.current,
+                strokeStyle: currentStrokeStyle.current,
+                lineWidth: currentLineWidth.current,
+                isFill: currentIsFill.current
 
             };
             
@@ -163,6 +205,10 @@ const Canvas = () => {
                 startY: DrawStartPoint.current.y,
                 endX: DrawDragPoint.current.x,
                 endY : DrawDragPoint.current.y,
+                fillStyle: currentFillStyle.current,
+                strokeStyle: currentStrokeStyle.current,
+                lineWidth: currentLineWidth.current,
+                isFill: currentIsFill.current
 
             };
             canvasCTX.current!.clearRect(0,0,canvasRef.current!.width, canvasRef.current!.height);
@@ -181,14 +227,14 @@ const Canvas = () => {
         canvasRef.current.addEventListener("keydown", handleKeyDown);
         canvasRef.current.addEventListener("wheel", handleScroll);
 
-        return () => {
+        return () => {if(canvasRef.current){
         canvasRef.current.removeEventListener("mousedown", handleMouseDown);
         canvasRef.current.removeEventListener("mouseup", handleMouseUp);
         canvasRef.current.removeEventListener("mousemove", handleMouseMove);
         canvasRef.current.removeEventListener("keydown", handleKeyDown);
-        canvasRef.current.removeEventListener("wheel", handleScroll);
+        canvasRef.current.removeEventListener("wheel", handleScroll);}
     };
-    }, []);
+    }, [isClient]);
     return (
         
         isClient?
@@ -196,11 +242,11 @@ const Canvas = () => {
             ref={canvasRef}
             width={window.innerWidth}
             height={window.innerHeight}
-            className="bg-blue-200"
+            className="bg-white"
         /> : 
         <canvas
             ref={canvasRef}
-            className="bg-blue-200"
+            className="bg-white"
         />
 
     )

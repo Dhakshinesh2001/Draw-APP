@@ -8,9 +8,10 @@ export interface Draw {
     | "arrow"
     | "text"
     | "freeHand";
-    strokeStyle?: string;
-    fillStyle?: string;
-    lineWidth?: number;
+    isFill: boolean;
+    strokeStyle: string;
+    fillStyle: string;
+    lineWidth: number;
     font?: string;
     fontSize?: string;
     startX?: number;
