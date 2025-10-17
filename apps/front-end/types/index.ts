@@ -1,5 +1,5 @@
 export interface Draw {
-    id: Number;
+    id: number;
     shape:
     | "rectangle"
     | "diamond"
