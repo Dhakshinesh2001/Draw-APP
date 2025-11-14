@@ -268,6 +268,8 @@ const Canvas = () => {
     // --- NEW TEXT EDITING STATE ---
     const [editingDrawId, setEditingDrawId] = useState<number | null>(null);
     const [editorStyle, setEditorStyle] = useState({});
+    const [editorDivStyle, setEditorDivStyle] = useState({});
+
     const editorRef = useRef<HTMLTextAreaElement>(null);
     // -----------------------------
 
@@ -420,29 +422,45 @@ const Canvas = () => {
 
         setEditorStyle({
             // Position relative to the viewport/canvas container
-            left: `${screenMin.x}px`,
-            top: `${screenMin.y}px`,
+            // left: `${screenMin.x}px`,
+            // top: `${screenMin.y}px`,
             width: `${boxWidth}px`,
-            height: `${boxHeight}px`,
+            // minheight: `${baseFontSize/2}`,
             
-            position: 'absolute',
+            // position: 'absolute',
             textAlign: 'center',
-            zIndex: 1000,
+            // zIndex: 1000,
             
             // Adjust appearance to visually match the canvas text scale
             // Font size and padding are scaled by zoom for visual coherence
-            fontSize: `${baseFontSize * currentCamera.zoom}px`, 
-            lineHeight: `${1.2 * currentCamera.zoom}`,
-            padding: `${padding * currentCamera.zoom}px`, 
-            
+            fontSize: `${baseFontSize}px`, 
+            // lineHeight: `${currentCamera.zoom}`,
+            paddingTop: `${baseFontSize*1.2}px`, 
+            lineHeight: 1,
             // Other styles for appearance
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            border: '2px solid #3b82f6',
-            boxSizing: 'border-box',
+            backgroundColor: 'transparent',
+            border: 'none',
+            // boxSizing: 'border-box',
             resize: 'none',
             overflow: 'hidden',
             fontFamily: 'Inter, sans-serif',
             color: selectedObj.strokeStyle || '#000000',
+            alignSelf: `center`,
+            outline: 'none',
+            boxShadow: 'none'
+        });
+
+        setEditorDivStyle({
+            left: `${screenMin.x}px`,
+            top: `${screenMin.y}px`,
+            width: `${boxWidth}px`,
+            height: `${boxHeight}px`,
+             border: 'none',
+             backgroundColor: 'transparent',
+             position: 'absolute',
+             display: 'flex'
+            
+             
         });
 
     }, [getWorldToScreenPoint]);
@@ -603,6 +621,7 @@ const Canvas = () => {
         // Hide the editor and reset state
         setEditingDrawId(null);
         setEditorStyle({});
+        setEditorDivStyle({});
     };
 
     const handleEditorKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1012,6 +1031,7 @@ const Canvas = () => {
             
             {/* Floating Text Editor (DOM Overlay) */}
             {editingDrawId !== null && (
+                <div style={editorDivStyle}>
                 <textarea
                     ref={editorRef}
                     // Fetch the current text from the mutable ref array
@@ -1021,7 +1041,7 @@ const Canvas = () => {
                     style={editorStyle}
                     // Add tailwind-like classes for basic styling robustness
                     className="absolute p-1 border-2 border-blue-500 rounded-lg shadow-xl outline-none bg-white/90"
-                />
+                /></div>
             )}
         </>
     )
